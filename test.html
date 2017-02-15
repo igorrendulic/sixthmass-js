@@ -1,0 +1,32 @@
+<html>
+	<head>
+		<script src="src/util.js"></script>
+		<script src="src/zivorad-main.js"></script>
+		<script type="text/javascript">
+			zivorad({
+				"token" : "88f36e62-6456-47fd-a87c-ebf21593e2b4"
+				//"trackOnlyZr" : false // track all links and submit buttons
+			});
+		</script>
+	</head>
+	<body>
+		<div>
+			<a href="#" zr-event="test-event">Test link</a>
+
+			<a href="test.html" target="_blank" zr-event="blank-event">Blank link</a>
+
+			<p class="testClass" zr-event='click on div'>This is text</p>
+			<div>
+					<a href="#/test">Second div link</a>
+					<button type="button">This is button</button>
+			</div>
+			<div>
+				<form action="">
+					<input type="text" name="test1" value="test1"/>
+					<input type="button" name="button2" value="button2"/>
+					<input type="submit" zr-event="submit-event" value="submit"/>
+				</form>
+			</div>
+		</div>
+	</body>
+</html>
