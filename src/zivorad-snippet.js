@@ -1,28 +1,37 @@
+
+// ==ClosureCompiler==
+// @compilation_level SIMPLE_OPTIMIZATIONS
+// @output_file_name zivorad-snippet.0.0.1.min.js
+// ==/ClosureCompiler==
+
+/** @define {string} */
+var ZR_LIB_URL = 'dist/zivorad.min.0.0.1.js';
+
 (function(){
-	var zivorad = window.zivorad = window.zivorad || [];
+	var zr = window.zr = window.zr || [];
 
 	// method stub factory (makeing it possible to call functions before the lib is loaded - defered method calls)
-	zivorad.factory = function(method){
+	zr.factory = function(method){
       return function(){
         var args = Array.prototype.slice.call(arguments);
         args.unshift(method);
-        zivorad.push(args);
-        return zivorad;
+        zr.push(args);
+        return zr;
       };
     };
 
     // exposed javascript methods
-    var methods = ['init','getUrl','track'];
+    var methods = ['init','track'];
     for (var i=0; i<methods.length; i++) {
     	var method = methods[i];
-    	zivorad[method] = zivorad.factory(method);
+    	zr[method] = zr.factory(method);
     }
 
     // loading javascript
 	var script = document.createElement('script');
 	script.type = 'text/javascript';
 	script.async = true;
-	script.src = 'dist/zivorad.min.0.0.1.js';
+	script.src = ZR_LIB_URL;
 
 	// Insert our script next to the first script element.
 	var first = document.getElementsByTagName('script')[0];
@@ -36,10 +45,9 @@
 		if (!loaded && (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete')) {
 			loaded = true;
 			script.onload = script.onreadystatechange = null;
-
-			_zr_init(zivorad);
+			_zr_init(zr);
 		}
 	};
 })();
 
-zivorad.init('YOUR TOKEN HERE');
+zr.init('YOUR TOKEN HERE');
