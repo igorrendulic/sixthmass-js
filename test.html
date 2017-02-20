@@ -1,17 +1,18 @@
 <html>
 	<head>
-		<script src="src/util.js"></script>
+		<!-- <script src="src/util.js"></script>
 		<script src="src/zivorad-main.js"></script>
+		-->
+		<!-- <script src="dist/zivorad.min.0.0.1.js"></script> -->
 		<script type="text/javascript">
-			zivorad({
-				"token" : "88f36e62-6456-47fd-a87c-ebf21593e2b4"
-				//"trackOnlyZr" : false // track all links and submit buttons
-			});
+		(function(){var c=window.zivorad=window.zivorad||[];c.factory=function(a){return function(){var b=Array.prototype.slice.call(arguments);b.unshift(a);c.push(b);return c}};for(var b=["init","getUrl","track"],d=0;d<b.length;d++){var e=b[d];c[e]=c.factory(e)}var a=document.createElement("script");a.type="text/javascript";a.async=!0;a.src="dist/zivorad.min.0.0.1.js";b=document.getElementsByTagName("script")[0];b.parentNode.insertBefore(a,b);var f=!1;a.onload=a.onreadystatechange=function(){f||this.readyState&&
+			"loaded"!==this.readyState&&"complete"!==this.readyState||(f=!0,a.onload=a.onreadystatechange=null,_zr_init(c))}})();
+			zivorad.init("YOUR TOKEN HERE");
 		</script>
 	</head>
 	<body>
 		<div>
-			<a href="#" zr-event="test-event">Test link</a>
+			<a href="#" zr-event="test-link">Test link</a>
 
 			<a href="test.html" target="_blank" zr-event="blank-event">Blank link</a>
 
