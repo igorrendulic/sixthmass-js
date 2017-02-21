@@ -25,6 +25,7 @@
 /** @const */ var STORAGE_QUEUE_INDEX = '_zr_queue_index';
 /** @const */ var INACTIVE_SESSION_RESET = 30; // 30 minutes
 /** @const */ var URL = 'http://localhost:8079/v1/event'; 
+/** @const */ var URL_PROFILE = 'http://localhost:8079/v1/profile'; 
 var globalDataQueue = [];
 
 /*
@@ -94,6 +95,13 @@ ZivoradLib.prototype.track = function(event, properties) {
     this.queueEvent(e);
 }
 
+ZivoradLib.prototype.profile = function(profile, customProperties) {
+    var p = this.createProfile(profile,customProperties,this);
+    var data = {};
+    data.data = p;
+    this.httpRequest(data, this.getProfileUrl(), 1, false); // first delay 1 second, don't store to queue
+}
+
 // Execute defered functions when 
 ZivoradLib.prototype.executeFunctions = function(zr,lib) {
     if (zr) {        
@@ -113,6 +121,10 @@ ZivoradLib.prototype.executeFunctions = function(zr,lib) {
 
 ZivoradLib.prototype.getUrl = function() {
     return URL;
+}
+
+ZivoradLib.prototype.getProfileUrl = function() {
+    return URL_PROFILE;
 }
 
 // register events to track
@@ -203,7 +215,10 @@ ZivoradLib.prototype.createEvent = function(name, properties,zr) {
      var newEvent = {} // event object
     var userProfile = zr_util.storage.parse(STORAGE_USER_PROFILE, zr.Config.storage);
     var sessionProfile = zr_util.storage.parse(STORAGE_SESSION, zr.Config.storage);
-    newEvent.uId = userProfile.uId;
+    if (!userProfile)  {
+       userProfile = this.initUser();
+    }
+    newEvent.uId = userProfile.userId;
     newEvent.cId = zr.initParams.token;
     newEvent.e = name;
     newEvent.sId = sessionProfile.sId;
@@ -224,7 +239,33 @@ ZivoradLib.prototype.createEvent = function(name, properties,zr) {
     newEvent.device = zr_util.referingFrom.device(window.navigator.userAgent);
     newEvent.lang = zr_util.referingFrom.language();
     newEvent.pageView = document.location.href;
+    if (!zr_util.isUndefined(properties)) {
+        newEvent.customValues  = properties;
+    }
     return newEvent;
+}
+
+ZivoradLib.prototype.createProfile = function(profile,customProperties,zr) {
+    var p = {};
+    var userProfile = zr_util.storage.parse(STORAGE_USER_PROFILE, zr.Config.storage);
+    if (!userProfile) {
+        userProfile = zr.initUser();
+    }
+    p.userId = userProfile.userId;
+    p.clientId = zr.initParams.token;
+    p.remoteUserId = profile.userId;
+    p.email = profile.email;
+    p.firstName = profile.first_name;
+    p.lastName = profile.last_name;
+    p.tzOffset = zr_util.timezone() * 60;
+    p.gender = profile.gender;
+    p.businessName = profile.business_name;
+    p.birthday = profile.birthday;
+    if (!zr_util.isUndefined(customProperties)) {
+        p.customValues = customProperties;
+    }
+    zr_util.storage.set(STORAGE_USER_PROFILE,zr_util.JSONEncode(p), zr.Config.storage); // save to local storage
+    return p;
 }
 
     // 1. check if storage contains user information
@@ -235,11 +276,12 @@ ZivoradLib.prototype.initUser = function() {
 
     var userProfile = zr_util.storage.get(STORAGE_USER_PROFILE, this.Config.storage);
     if (userProfile == null) {
-        var profile = {};
-        profile['uId'] = zr_util.uuid4(); // we don't know more about user at this point
-        zr_util.storage.set(STORAGE_USER_PROFILE,zr_util.JSONEncode(profile), this.Config.storage);
+        userProfile = {};
+        userProfile.userId = zr_util.uuid4(); // we don't know more about user at this point
+        zr_util.storage.set(STORAGE_USER_PROFILE,zr_util.JSONEncode(userProfile), this.Config.storage);
     }
     this.touchSession(); // init session if needed
+    return userProfile;
 }
 
 // refresh session time and calculate current session length in seconds
@@ -258,7 +300,7 @@ ZivoradLib.prototype.touchSession = function() {
         var sessionLastTouch = sessionJson['lastTouch'];
         var now = zr_util.timestamp();
         if (now - sessionLastTouch > INACTIVE_SESSION_RESET * 60 * 1000) { // if more than 30 minutes of inactivity
-            this.debug('new session defined');
+            console.log('new session defined');
             
             zr_util.storage.remove(STORAGE_QUEUE, this.Config.storage); // remove queue from storage (fresh start)
             zr_util.storage.remove(STORAGE_QUEUE_INDEX, this.Config.storage); // remove also queue index
@@ -326,44 +368,44 @@ ZivoradLib.prototype.sendData = function(queue) {
         }
         current.queueIndex = i;
 
-        this.httpRequest(current, 1); // 1 seconds start with progressive backoff (max to 15 seconds)
+        this.httpRequest(current, this.getUrl(), 1, true); // 1 seconds start with progressive backoff (max to 16 seconds), store to queue
     }
 }
 
-ZivoradLib.prototype.httpRequest = function(data, delay) {
+ZivoradLib.prototype.httpRequest = function(data, url, delay, storeToQueue) {
     try {
         if (data.sent) {
             if (data.sent === 1) {
-                console.log('not sending this event: ', data);
                 return; // don't resend events
             }
         }
+        console.log('sending ...', data);
+
         var http = zr_util.createXMLHTTPObject();
-        http.open('POST', this.getUrl(), true);
+        http.open('POST', url, true);
         http.withCredentials = true;
         http.setRequestHeader('Content-type', 'application/json');
         var instance = this;
         http.onreadystatechange = function() {
             if(http.readyState === 4) {
                 if (http.status === 200) {
-                    var queue = zr_util.storage.parse(STORAGE_QUEUE, instance.Config.storage);
-                    if (queue) {
-                        console.log(queue);
-                        data.sent = 1;
-                        data.sentTime = zr_util.timestamp();
-                        queue[data.queueIndex] = data;
-                        zr_util.storage.set(STORAGE_QUEUE,zr_util.JSONEncode(queue), instance.Config.storage);
-                        queue = zr_util.storage.parse(STORAGE_QUEUE, instance.Config.storage); // remove this one
-                        console.log(queue);
+                    if (storeToQueue) {
+                        var queue = zr_util.storage.parse(STORAGE_QUEUE, instance.Config.storage);
+                        if (queue) {
+                            data.sent = 1;
+                            data.sentTime = zr_util.timestamp();
+                            queue[data.queueIndex] = data;
+                            zr_util.storage.set(STORAGE_QUEUE,zr_util.JSONEncode(queue), instance.Config.storage);
+                            queue = zr_util.storage.parse(STORAGE_QUEUE, instance.Config.storage); // remove this one
+                        }
                     }
-
                 } else {
                     // progressive backoff if failed
                     if (delay >= 1 && delay <= 15) {
                         var newDelay = delay === 1 ? 2 : delay * 2;
                         console.log('Bad HTTP Status. Retrying: ', newDelay);
                         setTimeout(function() {
-                          instance.httpRequest(data, newDelay);
+                          instance.httpRequest(data, url, newDelay);
                         }, newDelay * 1000);
                     } else {
                         // handle failure

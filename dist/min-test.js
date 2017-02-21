@@ -24,7 +24,8 @@
 /** @const */ var STORAGE_QUEUE = '_zr_queue';
 /** @const */ var STORAGE_QUEUE_INDEX = '_zr_queue_index';
 /** @const */ var INACTIVE_SESSION_RESET = 30; // 30 minutes
-/** @const */ var URL = 'http://localhost:8079/v1/event'; // 30 minutes
+/** @const */ var URL = 'http://localhost:8079/v1/event'; 
+/** @const */ var URL_PROFILE = 'http://localhost:8079/v1/profile'; 
 var globalDataQueue = [];
 
 /*
@@ -55,32 +56,10 @@ function _zr_init(zr) {
         console.error('zivorad object undefined!');
         return;
     }
-
-    var loaded = false;
     var lib = new ZivoradLib();
-    
-
-    function dom_loaded_init(lib) {
-        if (loaded) {
-            console.log('Zivorad lib already loaded');
-            return;
-        }
-        loaded = true;
-        lib.executeFunctions(zr,lib);
-        return lib;
-    }
-
-    if (document.addEventListener) {
-        if (document.readyState === 'complete') {
-            dom_loaded_init(lib);
-        } else {
-            document.addEventListener('DOMContentLoaded', dom_loaded_init(lib), false);
-        }
-    } else if (document.attachEvent) {
-        // IE
-        document.attachEvent('onreadystatechange', dom_loaded_init(lib));
-    }
-};
+    lib.executeFunctions(zr,lib);
+    return lib;
+}
 
 /** @constructor */
 ZivoradLib.prototype.init = function(token) {
@@ -111,6 +90,17 @@ ZivoradLib.prototype.init = function(token) {
     }
 }
 
+ZivoradLib.prototype.track = function(event, properties) {
+    var e = this.createEvent(event,properties, this);
+    this.queueEvent(e);
+}
+
+ZivoradLib.prototype.profile = function(profile, customProperties) {
+    var p = this.createProfile(profile,customProperties,this);
+    var data = {};
+    data.data = p;
+    this.httpRequest(data, this.getProfileUrl(), 1, false); // first delay 1 second, don't store to queue
+}
 
 // Execute defered functions when 
 ZivoradLib.prototype.executeFunctions = function(zr,lib) {
@@ -129,19 +119,12 @@ ZivoradLib.prototype.executeFunctions = function(zr,lib) {
     }
 }
 
-
-ZivoradLib.prototype.debug = function() {
-    if (this.Config.DEBUG) { 
-        if (arguments) {
-            for (var i=0; i<arguments.length; i++) {
-                console.log('--- zivorad debug ---->', arguments[i]);
-            }
-        }
-    }
-};
-
 ZivoradLib.prototype.getUrl = function() {
     return URL;
+}
+
+ZivoradLib.prototype.getProfileUrl = function() {
+    return URL_PROFILE;
 }
 
 // register events to track
@@ -220,36 +203,69 @@ ZivoradLib.prototype.decorateEvents = function(events,zr) {
         zr_util.each(events, function(e) {
             zr_util.each(e.attributes, function(a) {
                 if (a.name === (zr.Config.attributePrefix + zr.PostfixAction)) {
-                    var newEvent = {} // event object
-                    var userProfile = zr_util.storage.parse(STORAGE_USER_PROFILE, zr.Config.storage);
-                    var sessionProfile = zr_util.storage.parse(STORAGE_SESSION, zr.Config.storage);
-                    newEvent.uId = userProfile.uId;
-                    newEvent.cId = zr.initParams.token;
-                    newEvent.e = a.value;
-                    newEvent.sId = sessionProfile.sId;
-                    newEvent.sessDuration = sessionProfile.sessDuration;
-                    newEvent.ts = zr_util.timestamp();
-                    newEvent.tzOffset = zr_util.timezone() * 60; // seconds
-                    newEvent.libVer = zr.Config.LIB_VERSION;
-                    var searchEngine = zr_util.referingFrom.searchEngine(document.referrer);
-                    if (searchEngine != null) {
-                        newEvent.refDomain = searchEngine;
-                        newEvent.searchQuery = zr_util.referingFrom.searchQuery(document.referrer);
-                    } else {
-                        newEvent.refDomain = zr_util.referingFrom.domain(document.referrer);
-                    }
-                    newEvent.browser = zr_util.referingFrom.browser(window.navigator.userAgent, window.navigator.vendor,window.opera);
-                    newEvent.browserVersion = zr_util.referingFrom.browserVersion(window.navigator.userAgent, window.navigator.vendor,window.opera);
-                    newEvent.os = zr_util.referingFrom.os(window.navigator.userAgent);
-                    newEvent.device = zr_util.referingFrom.device(window.navigator.userAgent);
-                    newEvent.lang = zr_util.referingFrom.language();
-                    newEvent.pageView = document.location.href;
-
+                    var newEvent = zr.createEvent(a.value,null,zr);
                     zr.queueEvent(newEvent);
                 }
             });
         });
     }
+}
+
+ZivoradLib.prototype.createEvent = function(name, properties,zr) {
+     var newEvent = {} // event object
+    var userProfile = zr_util.storage.parse(STORAGE_USER_PROFILE, zr.Config.storage);
+    var sessionProfile = zr_util.storage.parse(STORAGE_SESSION, zr.Config.storage);
+    if (!userProfile)  {
+       userProfile = this.initUser();
+    }
+    newEvent.uId = userProfile.userId;
+    newEvent.cId = zr.initParams.token;
+    newEvent.e = name;
+    newEvent.sId = sessionProfile.sId;
+    newEvent.sessDuration = sessionProfile.sessDuration;
+    newEvent.ts = zr_util.timestamp();
+    newEvent.tzOffset = zr_util.timezone() * 60; // seconds
+    newEvent.libVer = zr.Config.LIB_VERSION;
+    var searchEngine = zr_util.referingFrom.searchEngine(document.referrer);
+    if (searchEngine != null) {
+        newEvent.refDomain = searchEngine;
+        newEvent.searchQuery = zr_util.referingFrom.searchQuery(document.referrer);
+    } else {
+        newEvent.refDomain = zr_util.referingFrom.domain(document.referrer);
+    }
+    newEvent.browser = zr_util.referingFrom.browser(window.navigator.userAgent, window.navigator.vendor,window.opera);
+    newEvent.browserVersion = zr_util.referingFrom.browserVersion(window.navigator.userAgent, window.navigator.vendor,window.opera);
+    newEvent.os = zr_util.referingFrom.os(window.navigator.userAgent);
+    newEvent.device = zr_util.referingFrom.device(window.navigator.userAgent);
+    newEvent.lang = zr_util.referingFrom.language();
+    newEvent.pageView = document.location.href;
+    if (!zr_util.isUndefined(properties)) {
+        newEvent.customValues  = properties;
+    }
+    return newEvent;
+}
+
+ZivoradLib.prototype.createProfile = function(profile,customProperties,zr) {
+    var p = {};
+    var userProfile = zr_util.storage.parse(STORAGE_USER_PROFILE, zr.Config.storage);
+    if (!userProfile) {
+        userProfile = zr.initUser();
+    }
+    p.userId = userProfile.userId;
+    p.clientId = zr.initParams.token;
+    p.remoteUserId = profile.userId;
+    p.email = profile.email;
+    p.firstName = profile.first_name;
+    p.lastName = profile.last_name;
+    p.tzOffset = zr_util.timezone() * 60;
+    p.gender = profile.gender;
+    p.businessName = profile.business_name;
+    p.birthday = profile.birthday;
+    if (!zr_util.isUndefined(customProperties)) {
+        p.customValues = customProperties;
+    }
+    zr_util.storage.set(STORAGE_USER_PROFILE,zr_util.JSONEncode(p), zr.Config.storage); // save to local storage
+    return p;
 }
 
     // 1. check if storage contains user information
@@ -260,11 +276,12 @@ ZivoradLib.prototype.initUser = function() {
 
     var userProfile = zr_util.storage.get(STORAGE_USER_PROFILE, this.Config.storage);
     if (userProfile == null) {
-        var profile = {};
-        profile['uId'] = zr_util.uuid4(); // we don't know more about user at this point
-        zr_util.storage.set(STORAGE_USER_PROFILE,zr_util.JSONEncode(profile), this.Config.storage);
+        userProfile = {};
+        userProfile.userId = zr_util.uuid4(); // we don't know more about user at this point
+        zr_util.storage.set(STORAGE_USER_PROFILE,zr_util.JSONEncode(userProfile), this.Config.storage);
     }
     this.touchSession(); // init session if needed
+    return userProfile;
 }
 
 // refresh session time and calculate current session length in seconds
@@ -283,7 +300,7 @@ ZivoradLib.prototype.touchSession = function() {
         var sessionLastTouch = sessionJson['lastTouch'];
         var now = zr_util.timestamp();
         if (now - sessionLastTouch > INACTIVE_SESSION_RESET * 60 * 1000) { // if more than 30 minutes of inactivity
-            this.debug('new session defined');
+            console.log('new session defined');
             
             zr_util.storage.remove(STORAGE_QUEUE, this.Config.storage); // remove queue from storage (fresh start)
             zr_util.storage.remove(STORAGE_QUEUE_INDEX, this.Config.storage); // remove also queue index
@@ -351,44 +368,44 @@ ZivoradLib.prototype.sendData = function(queue) {
         }
         current.queueIndex = i;
 
-        this.httpRequest(current, 1); // 1 seconds start with progressive backoff (max to 15 seconds)
+        this.httpRequest(current, this.getUrl(), 1, true); // 1 seconds start with progressive backoff (max to 16 seconds), store to queue
     }
 }
 
-ZivoradLib.prototype.httpRequest = function(data, delay) {
+ZivoradLib.prototype.httpRequest = function(data, url, delay, storeToQueue) {
     try {
         if (data.sent) {
             if (data.sent === 1) {
-                console.log('not sending this event: ', data);
                 return; // don't resend events
             }
         }
+        console.log('sending ...', data);
+
         var http = zr_util.createXMLHTTPObject();
-        http.open('POST', this.getUrl(), true);
+        http.open('POST', url, true);
         http.withCredentials = true;
         http.setRequestHeader('Content-type', 'application/json');
         var instance = this;
         http.onreadystatechange = function() {
             if(http.readyState === 4) {
                 if (http.status === 200) {
-                    var queue = zr_util.storage.parse(STORAGE_QUEUE, instance.Config.storage);
-                    if (queue) {
-                        console.log(queue);
-                        data.sent = 1;
-                        data.sentTime = zr_util.timestamp();
-                        queue[data.queueIndex] = data;
-                        zr_util.storage.set(STORAGE_QUEUE,zr_util.JSONEncode(queue), instance.Config.storage);
-                        queue = zr_util.storage.parse(STORAGE_QUEUE, instance.Config.storage); // remove this one
-                        console.log(queue);
+                    if (storeToQueue) {
+                        var queue = zr_util.storage.parse(STORAGE_QUEUE, instance.Config.storage);
+                        if (queue) {
+                            data.sent = 1;
+                            data.sentTime = zr_util.timestamp();
+                            queue[data.queueIndex] = data;
+                            zr_util.storage.set(STORAGE_QUEUE,zr_util.JSONEncode(queue), instance.Config.storage);
+                            queue = zr_util.storage.parse(STORAGE_QUEUE, instance.Config.storage); // remove this one
+                        }
                     }
-
                 } else {
                     // progressive backoff if failed
                     if (delay >= 1 && delay <= 15) {
                         var newDelay = delay === 1 ? 2 : delay * 2;
                         console.log('Bad HTTP Status. Retrying: ', newDelay);
                         setTimeout(function() {
-                          instance.httpRequest(data, newDelay);
+                          instance.httpRequest(data, url, newDelay);
                         }, newDelay * 1000);
                     } else {
                         // handle failure
@@ -459,6 +476,20 @@ zr_util.isTag = function(el, tag) {
     return el && el.tagName && el.tagName.toLowerCase() === tag.toLowerCase();
 };
 
+zr_util.formatDate = function(d) {
+    // YYYY-MM-DDTHH:MM:SS in UTC
+    function pad(n) {
+        return n < 10 ? '0' + n : n;
+    }
+    return d.getUTCFullYear() + '-' +
+        pad(d.getUTCMonth() + 1) + '-' +
+        pad(d.getUTCDate()) + 'T' +
+        pad(d.getUTCHours()) + ':' +
+        pad(d.getUTCMinutes()) + ':' +
+        pad(d.getUTCSeconds());
+};
+
+
 /**
  * @param {*=} obj
  * @param {function(...[*])=} iterator
@@ -485,6 +516,10 @@ zr_util.each = function(obj, iterator, context) {
             }
         }
     }
+};
+
+zr_util.isUndefined = function(obj) {
+    return obj === void 0;
 };
 
 zr_util.shouldTrackDOMEvent = function(element) {

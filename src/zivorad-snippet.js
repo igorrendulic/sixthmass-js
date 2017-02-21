@@ -21,7 +21,7 @@ var ZR_LIB_URL = 'dist/zivorad.min.0.0.1.js';
     };
 
     // exposed javascript methods
-    var methods = ['init','track'];
+    var methods = ['init','track','profile'];
     for (var i=0; i<methods.length; i++) {
     	var method = methods[i];
     	zr[method] = zr.factory(method);

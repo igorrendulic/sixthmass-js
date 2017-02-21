@@ -54,6 +54,20 @@ zr_util.isTag = function(el, tag) {
     return el && el.tagName && el.tagName.toLowerCase() === tag.toLowerCase();
 };
 
+zr_util.formatDate = function(d) {
+    // YYYY-MM-DDTHH:MM:SS in UTC
+    function pad(n) {
+        return n < 10 ? '0' + n : n;
+    }
+    return d.getUTCFullYear() + '-' +
+        pad(d.getUTCMonth() + 1) + '-' +
+        pad(d.getUTCDate()) + 'T' +
+        pad(d.getUTCHours()) + ':' +
+        pad(d.getUTCMinutes()) + ':' +
+        pad(d.getUTCSeconds());
+};
+
+
 /**
  * @param {*=} obj
  * @param {function(...[*])=} iterator
@@ -80,6 +94,10 @@ zr_util.each = function(obj, iterator, context) {
             }
         }
     }
+};
+
+zr_util.isUndefined = function(obj) {
+    return obj === void 0;
 };
 
 zr_util.shouldTrackDOMEvent = function(element) {
