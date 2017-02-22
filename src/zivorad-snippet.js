@@ -1,10 +1,3 @@
-
-// ==ClosureCompiler==
-// @compilation_level SIMPLE_OPTIMIZATIONS
-// @output_file_name zivorad-snippet.0.0.1.min.js
-// ==/ClosureCompiler==
-
-/** @define {string} */
 var ZR_LIB_URL = 'dist/zivorad.min.0.0.1.js';
 
 (function(){
@@ -21,7 +14,7 @@ var ZR_LIB_URL = 'dist/zivorad.min.0.0.1.js';
     };
 
     // exposed javascript methods
-    var methods = ['init','track','profile'];
+    var methods = ['init','track','profile','purchase', 'register'];
     for (var i=0; i<methods.length; i++) {
     	var method = methods[i];
     	zr[method] = zr.factory(method);
@@ -37,7 +30,6 @@ var ZR_LIB_URL = 'dist/zivorad.min.0.0.1.js';
 	var first = document.getElementsByTagName('script')[0];
 	first.parentNode.insertBefore(script, first);
 
-
 	var loaded = false;
 	// // setup an onload handler to initialize the plugin once the runtime
 	// // resources are downloaded
@@ -45,9 +37,7 @@ var ZR_LIB_URL = 'dist/zivorad.min.0.0.1.js';
 		if (!loaded && (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete')) {
 			loaded = true;
 			script.onload = script.onreadystatechange = null;
-			_zr_init(zr);
+			window.zr = _zr_init();
 		}
 	};
 })();
-
-zr.init('YOUR TOKEN HERE');

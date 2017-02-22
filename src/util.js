@@ -194,6 +194,10 @@ zr_util.timezone = function() {
     return new Date().getTimezoneOffset();
 }
 
+zr_util.isArray = Array.isArray || function(obj) {
+    return toString.call(obj) === '[object Array]';
+};
+
 // universal storage (either local storage or cookies)
 zr_util.storage = {
     get: function(name,storageType) {

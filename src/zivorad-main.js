@@ -28,6 +28,8 @@
 /** @const */ var URL_PROFILE = 'http://localhost:8079/v1/profile'; 
 var globalDataQueue = [];
 
+var zr_instance;
+
 /*
 * Config
 */
@@ -51,14 +53,16 @@ var ZivoradLib  = function() {};
 /**
 * Init of library after javascript library loaded
 */
-function _zr_init(zr) {
+function _zr_init() {
+    var zr = window.zr;
     if (!zr) {
         console.error('zivorad object undefined!');
         return;
     }
     var lib = new ZivoradLib();
     lib.executeFunctions(zr,lib);
-    return lib;
+    zr_instance = lib;
+    return zr_instance;
 }
 
 /** @constructor */
@@ -101,6 +105,21 @@ ZivoradLib.prototype.profile = function(profile, customProperties) {
     data.data = p;
     this.httpRequest(data, this.getProfileUrl(), 1, false); // first delay 1 second, don't store to queue
 }
+
+ZivoradLib.prototype.purchase = function(array) {
+    if (!zr_util.isArray(array)) {
+        console.error('Required array of purchased items.');
+        return;
+    }
+    var e = this.createPurchase(array, this);
+    this.queueEvent(e);
+}
+
+ZivoradLib.prototype.register = function(profile,customProperties) {
+    var e = this.createRegister(profile, customProperties, this);
+    this.queueEvent(e);
+    this.profile(profile, customProperties);
+} 
 
 // Execute defered functions when 
 ZivoradLib.prototype.executeFunctions = function(zr,lib) {
@@ -253,7 +272,7 @@ ZivoradLib.prototype.createProfile = function(profile,customProperties,zr) {
     }
     p.userId = userProfile.userId;
     p.clientId = zr.initParams.token;
-    p.remoteUserId = profile.userId;
+    p.remoteUserId = profile.user_id;
     p.email = profile.email;
     p.firstName = profile.first_name;
     p.lastName = profile.last_name;
@@ -266,6 +285,28 @@ ZivoradLib.prototype.createProfile = function(profile,customProperties,zr) {
     }
     zr_util.storage.set(STORAGE_USER_PROFILE,zr_util.JSONEncode(p), zr.Config.storage); // save to local storage
     return p;
+}
+
+ZivoradLib.prototype.createRegister = function(profile, customProperties, zr) {
+    var p = zr.createProfile(profile, customProperties, this);
+    var e = zr.createEvent('zr_register', null, zr);
+    return e;
+}
+
+ZivoradLib.prototype.createPurchase = function(items, zr) {
+    
+    var purchaseEvent = zr.createEvent('zr_purchase', null, zr);
+    purchaseEvent.pItems = [];
+    zr_util.each(items, function(item) {
+        var convItem = {};
+        convItem.id = item.id;
+        convItem.n = item.name;
+        convItem.pr = item.price;
+        convItem.q = item.quantity;
+        purchaseEvent.pItems.push(convItem);
+    });
+    return purchaseEvent;
+
 }
 
     // 1. check if storage contains user information

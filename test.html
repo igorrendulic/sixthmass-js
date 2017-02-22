@@ -6,8 +6,8 @@
 		<!-- <script src="dist/zivorad.min.0.0.1.js"></script> -->
 		<script type="text/javascript">
 		var ZR_LIB_URL="dist/zivorad.min.0.0.1.js";
-		(function(){var c=window.zr=window.zr||[];c.factory=function(a){return function(){var b=Array.prototype.slice.call(arguments);b.unshift(a);c.push(b);return c}};for(var b=["init","track","profile"],d=0;d<b.length;d++){var e=b[d];c[e]=c.factory(e)}var a=document.createElement("script");a.type="text/javascript";a.async=!0;a.src=ZR_LIB_URL;b=document.getElementsByTagName("script")[0];b.parentNode.insertBefore(a,b);var f=!1;a.onload=a.onreadystatechange=function(){f||this.readyState&&"loaded"!==this.readyState&&
-		"complete"!==this.readyState||(f=!0,a.onload=a.onreadystatechange=null,_zr_init(c))}})();
+(function(){var c=window.zr=window.zr||[];c.factory=function(a){return function(){var b=Array.prototype.slice.call(arguments);b.unshift(a);c.push(b);return c}};for(var b=["init","track","profile","purchase","register"],d=0;d<b.length;d++){var e=b[d];c[e]=c.factory(e)}var a=document.createElement("script");a.type="text/javascript";a.async=!0;a.src=ZR_LIB_URL;b=document.getElementsByTagName("script")[0];b.parentNode.insertBefore(a,b);var f=!1;a.onload=a.onreadystatechange=function(){f||this.readyState&&
+"loaded"!==this.readyState&&"complete"!==this.readyState||(f=!0,a.onload=a.onreadystatechange=null,window.zr=_zr_init())}})();
 
 			zr.init("88f36e62-6456-47fd-a87c-ebf21593e2b4");
 
@@ -16,12 +16,41 @@
 			zr.profile({
 				'first_name':"Igor",
 				"last_name":"Rendulic",
-				"userId":"123456",
+				"user_id":"123456",
 				"email":"igor@amplio.si",
 				"gender":"male",
 				"business_name":"Amplio d.o.o.",
 				"birthday":"1979-04-13"},
 				{'custom':1, 'date':Date.now(), 'use':true, 'str':'StringYes', 'decimal':0.1});
+
+		</script>
+
+		<script type="text/javascript">
+			function purchase() {
+				console.log('purchase function called');
+				zr.purchase([
+						{"id":"itemId",
+						"name":"itemName",
+						"price":2134.23,
+						"quantity":1},
+						{"id":"itemId2",
+						"name":"itemName2",
+						"price":1111.23,
+						"quantity":2}
+					]
+				);
+			}
+
+			function register() {
+				console.log('register clicked');
+				zr.register({"first_name":"Rudi", 
+							"last_name":"Popudi", 
+							"user_id":"theone", 
+							"email":"igor+test1@azumio.com", 
+							"business_name":"Zoo.Inc",
+							"birthday":"1982-05-05"},
+							{'some_number':1, 'date_me':Date.now(), 'boolean_value':true, 'string_value':'StringYes', 'decimal_value':0.1});
+			}
 		</script>
 	</head>
 	<body>
@@ -31,6 +60,8 @@
 			<a href="test.html" target="_blank" zr-event="blank-event">Blank link</a>
 
 			<p class="testClass" zr-event='click on div'>This is text</p>
+			<p class="testClass" onclick="javascript:purchase()">Purchase clicked</p>s
+			<p class="testClass" onclick="javascript:register()">Register new user click</p>s
 			<div>
 					<a href="#/test">Second div link</a>
 					<button type="button">This is button</button>
