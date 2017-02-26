@@ -352,6 +352,7 @@ ZivoradLib.prototype.touchSession = function() {
             zr_util.storage.set(STORAGE_SESSION,zr_util.JSONEncode(sessionJson), this.Config.storage);
         } else {
             var duration = (now - sessionTs) / 1000; // seconds
+            console.log('session duration current', duration);
             sessionJson['sessDuration'] = duration;
             sessionJson['lastTouch'] = now;
             zr_util.storage.set(STORAGE_SESSION,zr_util.JSONEncode(sessionJson), this.Config.storage);
