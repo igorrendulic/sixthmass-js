@@ -1,4 +1,4 @@
-var ZR_LIB_URL = 'dist/zivorad.min.0.0.1.js';
+var ZR_LIB_URL = '//storage.googleapis.com/zivoradjscdn/zivorad.min.0.0.1.js';
 
 (function(){
 	var zr = window.zr = window.zr || [];
