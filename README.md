@@ -51,31 +51,22 @@ There is no need to call profile (method bellow) after registration (it records 
 ### User Profile Tracking
 
 ```javascript
-zr.profile({"first_name":"Igor",
-  		 	"last_name":"Rendulic",
-			"user_id":"123456",
-			"email":"something@sixthmass.com",
-			"gender":"male",
-			"business_name":"Sixthmass company",
-			"birthday":"1979-04-13"},
-		{'custom':1, 'date':Date.now(), 'use':true, 'str':'StringYes', 'decimal':0.1});
+zr.profile(
+	{"first_name":"Igor","last_name":"Rendulic","user_id":"123456","email":"something@sixthmass.com","gender":"male","business_name":"Sixthmass company","birthday":"1979-04-13"},
+	{'custom':1, 'date':Date.now(), 'use':true, 'str':'StringYes', 'decimal':0.1});
 ```
 
-Updates users profile. Method overrides users profile with latest data from zr.profile.
+Updates users profile. Method overrides users profile with latest data from zr.profile. 
+First parameter is JSON Object with predefined fields. Second parameter is optional and holds custom values.
 
 ### Purchase Tracking
 
 ```javascript
-zr.purchase([
-	{"id":"itemId",
-	 "name":"itemName",
-	 "price":2134.23,
-	 "quantity":1},
-	{"id":"itemId2",
-	 "name":"itemName2",
-	 "price":1111.23,
-	 "quantity":2}
-	]);
+zr.purchase(
+	[{"id":"itemId","name":"itemName","price":2134.23,"quantity":1},
+			 {"id":"itemId2","name":"itemName2","price":1111.23,"quantity":2}
+	]
+);
 ```
 
 List of items in users basket after the purchase is made.
