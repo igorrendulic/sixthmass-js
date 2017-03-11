@@ -24,8 +24,8 @@
 /** @const */ var STORAGE_QUEUE = '_zr_queue';
 /** @const */ var STORAGE_QUEUE_INDEX = '_zr_queue_index';
 /** @const */ var INACTIVE_SESSION_RESET = 30; // 30 minutes
-/** @const */ var URL = 'http://localhost:8079/v1/event'; 
-/** @const */ var URL_PROFILE = 'http://localhost:8079/v1/profile'; 
+/** @const */ var URL = 'http://events.sixthmass.com/v1/event'; 
+/** @const */ var URL_PROFILE = 'http://events.sixthmass.com/v1/profile'; 
 var globalDataQueue = [];
 
 var zr_instance;
