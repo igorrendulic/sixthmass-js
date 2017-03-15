@@ -208,7 +208,7 @@ ZivoradLib.prototype.handleEvents = function(e, zr) { // e = event, zr = referen
                 } 
             });
             zr.decorateEvents(listOfEvents,zr);
-        }
+        } 
     }
 }
 

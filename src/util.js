@@ -109,20 +109,21 @@ zr_util.shouldTrackDOMEvent = function(element) {
         case 'html':
             return false;
         case 'form':
-            return event.type === 'submit';
+            return true;
         case 'input':
             if (['button', 'submit'].indexOf(element.getAttribute('type')) === -1) {
                 //return event.type === 'change';
                 return false;
             } else {
-                return event.type === 'click';
+                return true; //event.type === 'click';
             }
         case 'select':
         case 'textarea':
             // return event.type === 'change';
             return false;
         default:
-            return event.type === 'click';
+            //return event.type === 'click';
+            return true;
     }
 };
 
