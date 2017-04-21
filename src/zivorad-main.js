@@ -11,8 +11,6 @@
 // @compilation_level ADVANCED_OPTIMIZATIONS
 // ==/ClosureCompiler==
 
-//import { _ } from './utils';
-//import { _ } from './autotracker';
 'use strict';
 
 /** @const */ var ELEMENT_NODE = 1;
@@ -24,8 +22,10 @@
 /** @const */ var STORAGE_QUEUE = '_zr_queue';
 /** @const */ var STORAGE_QUEUE_INDEX = '_zr_queue_index';
 /** @const */ var INACTIVE_SESSION_RESET = 30; // 30 minutes
-/** @const */ var URL = 'http://events.sixthmass.com/v1/event'; 
-/** @const */ var URL_PROFILE = 'http://events.sixthmass.com/v1/profile'; 
+/** @const */ var URL = 'http://events.sixthmass.com/v1/event';
+/** @const */ var URL_PROFILE = 'http://events.sixthmass.com/v1/profile';
+/** @const */ //var URL = 'http://localhost:8079/v1/event';
+/** @const */ //var URL_PROFILE = 'http://localhost:8079/v1/profile';
 var globalDataQueue = [];
 
 var zr_instance;
@@ -35,7 +35,7 @@ var zr_instance;
 */
 var Config = {
     DEBUG: true,
-    LIB_VERSION: '0.0.1',
+    LIB_VERSION: '0.0.2',
     events: ['click'], // dblclick
     attributePrefix: 'zr-',
     trackOnlyZr: true
@@ -119,11 +119,11 @@ ZivoradLib.prototype.register = function(profile,customProperties) {
     var e = this.createRegister(profile, customProperties, this);
     this.queueEvent(e);
     this.profile(profile, customProperties);
-} 
+}
 
-// Execute defered functions when 
+// Execute defered functions when
 ZivoradLib.prototype.executeFunctions = function(zr,lib) {
-    if (zr) {        
+    if (zr) {
         zr_util.each(zr, function(item) {
             var fn_name = item[0];
             if (item.length > 0) {
@@ -175,7 +175,7 @@ ZivoradLib.prototype.handleEvents = function(e, zr) { // e = event, zr = referen
         while (currentElement.parentNode && !zr_util.isTag(currentElement,'body')) { // ignore clicks on body tag directly (already included)
             targetList.push(currentElement.parentNode);
             currentElement = currentElement.parentNode;
-        } 
+        }
 
         if (zr_util.shouldTrackDOMEvent(target)) {
 
@@ -205,10 +205,10 @@ ZivoradLib.prototype.handleEvents = function(e, zr) { // e = event, zr = referen
                         zr.debug(elementProperties.attributes);
                         listOfEvents.push(elementProperties);
                     }
-                } 
+                }
             });
             zr.decorateEvents(listOfEvents,zr);
-        } 
+        }
     }
 }
 
@@ -294,7 +294,7 @@ ZivoradLib.prototype.createRegister = function(profile, customProperties, zr) {
 }
 
 ZivoradLib.prototype.createPurchase = function(items, zr) {
-    
+
     var purchaseEvent = zr.createEvent('zr_purchase', null, zr);
     purchaseEvent.pItems = [];
     zr_util.each(items, function(item) {
@@ -316,10 +316,27 @@ ZivoradLib.prototype.createPurchase = function(items, zr) {
 ZivoradLib.prototype.initUser = function() {
 
     var userProfile = zr_util.storage.get(STORAGE_USER_PROFILE, this.Config.storage);
-    if (userProfile == null) {
+    if (userProfile == null || zr_util.isUndefined(userProfile)) {
         userProfile = {};
-        userProfile.userId = zr_util.uuid4(); // we don't know more about user at this point
+
+        if (navigator.cookieEnabled) {
+            var userId = zr_util.cookieStorage.get('zr_user_id');
+            if (zr_util.isUndefined(userId) || userId == null) { // if not in cookies
+              userId = zr_util.uuid4();
+              userProfile.userId = userId;
+            } else {
+              userProfile.userId = userId;
+            }
+            zr_util.cookieStorage.set('zr_user_id',userId,3650,true,false);
+        } else {
+          // if cookies not enabled
+          userProfile.userId = zr_util.uuid4();
+        }
         zr_util.storage.set(STORAGE_USER_PROFILE,zr_util.JSONEncode(userProfile), this.Config.storage);
+    }
+    // todo: check what is the real id? (email, remoteId, or just our userProfile.userId)
+    if (userProfile.hasOwnProperty('remoteUserId')) {
+      userProfile.userId = userProfile.remoteUserId;
     }
     this.touchSession(); // init session if needed
     return userProfile;
@@ -342,7 +359,7 @@ ZivoradLib.prototype.touchSession = function() {
         var now = zr_util.timestamp();
         if (now - sessionLastTouch > INACTIVE_SESSION_RESET * 60 * 1000) { // if more than 30 minutes of inactivity
             console.log('new session defined');
-            
+
             zr_util.storage.remove(STORAGE_QUEUE, this.Config.storage); // remove queue from storage (fresh start)
             zr_util.storage.remove(STORAGE_QUEUE_INDEX, this.Config.storage); // remove also queue index
 
@@ -380,22 +397,22 @@ ZivoradLib.prototype.queueEvent = function(event) {
         data.queueIndex = queueIndex;
         data.data = event;
         if (zr_util.islocalStorageSupported()) {
-            zr_util.storage.set(STORAGE_QUEUE, zr_util.JSONEncode(queue), this.Config.storage); 
+            zr_util.storage.set(STORAGE_QUEUE, zr_util.JSONEncode(queue), this.Config.storage);
         }
 
         this.sendData(queue);
     } catch (ex) {
         console.error('storage queue problem:', ex);
-    } 
+    }
 }
-    
+
 
 /*
 * Manages queue Index for input event queue (combines current event with previous event)
 * After this function events and managed as one by one event queue
 */
 ZivoradLib.prototype.sendData = function(queue) {
-    
+
     if (!queue) {
         console.error('required defined queue and url');
         return;
