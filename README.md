@@ -1,4 +1,4 @@
-# Zivorad Javascript
+# SixthMass Javascript SDK
 
 ## HTML Code Snippet
 
