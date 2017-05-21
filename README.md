@@ -71,3 +71,30 @@ zr.purchase(
 
 List of items in users basket after the purchase is made.
 
+<a name="want-to-contribute"></a>
+# Want to Contribute?
+
+The SixthMass javascript library is an open source project. You're welcome to contribute!
+
+Steps to contribute: 
+1. Fork this repository
+2. Create local clone of your fork
+3. Configure Git to sync your for with original SixthMass repository
+
+These steps are described in detail [Here](https://help.github.com/articles/fork-a-repo/)
+
+When you're done you can open a [pull request](https://help.github.com/articles/about-pull-requests/)
+
+
+<a name="changelog"></a>
+# Changelog
+
+TBD
+
+<a name="License"></a>
+# License
+
+```
+See LICENSE file for details. 
+```
+
