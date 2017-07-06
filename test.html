@@ -6,56 +6,57 @@
 		<!-- <script src="dist/zivorad.min.0.0.1.js"></script> -->
 		<script type="text/javascript">
 
-			var ZR_LIB_URL = 'src/zivorad-main.js';
+			var M6_LIB_URL = 'src/zivorad-main.js';
 
-(function(){
-	var zr = window.zr = window.zr || [];
+			(function(){
+				var m6 = window.m6 = window.m6 || [];
 
-	// method stub factory (makeing it possible to call functions before the lib is loaded - defered method calls)
-	zr.factory = function(method){
-      return function(){
-        var args = Array.prototype.slice.call(arguments);
-        args.unshift(method);
-        zr.push(args);
-        return zr;
-      };
-    };
+				// method stub factory (makeing it possible to call functions before the lib is loaded - defered method calls)
+				m6.factory = function(method){
+			      return function(){
+			        var args = Array.prototype.slice.call(arguments);
+			        args.unshift(method);
+			        m6.push(args);
+			        return m6;
+			      };
+			    };
 
-    // exposed javascript methods
-    var methods = ['init','track','profile','purchase', 'register'];
-    for (var i=0; i<methods.length; i++) {
-    	var method = methods[i];
-    	zr[method] = zr.factory(method);
-    }
+			    // exposed javascript methods
+			    var methods = ['init','track','profile','purchase', 'register'];
+			    for (var i=0; i<methods.length; i++) {
+			    	var method = methods[i];
+			    	m6[method] = m6.factory(method);
+			    }
 
-    // loading javascript
-	var script = document.createElement('script');
-	script.type = 'text/javascript';
-	script.async = true;
-	script.src = ZR_LIB_URL;
+			    // loading javascript
+				var script = document.createElement('script');
+				script.type = 'text/javascript';
+				script.async = true;
+				script.src = M6_LIB_URL;
 
-	// Insert our script next to the first script element.
-	var first = document.getElementsByTagName('script')[0];
-	first.parentNode.insertBefore(script, first);
+				// Insert our script next to the first script element.
+				var first = document.getElementsByTagName('script')[0];
+				first.parentNode.insertBefore(script, first);
 
-	var loaded = false;
-	// // setup an onload handler to initialize the plugin once the runtime
-	// // resources are downloaded
-	script.onload = script.onreadystatechange = function() {
-		if (!loaded && (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete')) {
-			loaded = true;
-			script.onload = script.onreadystatechange = null;
-			window.zr = _zr_init();
-		}
-	};
-})();
+				var loaded = false;
+				// // setup an onload handler to initialize the plugin once the runtime
+				// // resources are downloaded
+				script.onload = script.onreadystatechange = function() {
+					if (!loaded && (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete')) {
+						loaded = true;
+						script.onload = script.onreadystatechange = null;
+						window.m6 = _m6_init();
+					}
+				};
+			})();
 
 
-			zr.init("89f94116-310d-4117-99f9-4af03a64db76");
 
-			zr.track('my event',{'name':'igor'});
+			m6.init("2ef5402c-dd5a-4cd5-ad51-6be930a4e9f4");
 
-			zr.profile({
+			m6.track('my event',{'name':'igor'});
+
+			m6.profile({
 				'first_name':"Igor",
 				"last_name":"Rendulic",
 				"user_id":"123456",
@@ -70,7 +71,7 @@
 		<script type="text/javascript">
 			function purchase() {
 				console.log('purchase function called');
-				zr.purchase([
+				m6.purchase([
 						{"id":"itemId",
 						"name":"itemName",
 						"price":2134.23,
@@ -85,7 +86,7 @@
 
 			function register() {
 				console.log('register clicked');
-				zr.register({"first_name":"Rudi",
+				m6.register({"first_name":"Rudi",
 							"last_name":"Popudi",
 							"user_id":"theone",
 							"email":"igor+test1@azumio.com",
@@ -97,11 +98,11 @@
 	</head>
 	<body>
 		<div>
-			<a href="#" zr-event="test-link">Test link</a>
+			<a href="#" m6-event="test-link">Test link</a>
 
-			<a href="test.html" target="_blank" zr-event="blank-event">Blank link</a>
+			<a href="test.html" target="_blank" m6-event="blank-event">Blank link</a>
 
-			<p class="testClass" zr-event='click on div'>This is text</p>
+			<p class="testClass" m6-event='click on div'>This is text</p>
 			<p class="testClass" onclick="javascript:purchase()">Purchase clicked</p>s
 			<p class="testClass" onclick="javascript:register()">Register new user click</p>s
 			<div>
@@ -112,7 +113,7 @@
 				<form action="">
 					<input type="text" name="test1" value="test1"/>
 					<input type="button" name="button2" value="button2"/>
-					<input type="submit" zr-event="submit-event" value="submit"/>
+					<input type="submit" m6-event="submit-event" value="submit"/>
 				</form>
 			</div>
 		</div>

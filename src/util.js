@@ -7,7 +7,7 @@
 // @compilation_level ADVANCED_OPTIMIZATIONS
 // ==/ClosureCompiler==
 
- var zr_util  = {
+ var m6_util  = {
 
  };
 
@@ -18,7 +18,7 @@ var XMLHttpFactories = [
     function () {return new ActiveXObject("Microsoft.XMLHTTP")}
 ];
 
-zr_util.createXMLHTTPObject = function() {
+m6_util.createXMLHTTPObject = function() {
     var xmlhttp = false;
     for (var i=0;i<XMLHttpFactories.length;i++) {
         try {
@@ -33,7 +33,7 @@ zr_util.createXMLHTTPObject = function() {
 }
 
 
-zr_util.timestamp = function() {
+m6_util.timestamp = function() {
     Date.now = Date.now || function() {
         return +new Date;
     };
@@ -43,18 +43,18 @@ zr_util.timestamp = function() {
 // _.isBlockedUA()
 // This is to block various web spiders from executing our JS and
 // sending false tracking data
-zr_util.isBlockedUA = function(ua) {
+m6_util.isBlockedUA = function(ua) {
     if (/(google web preview|baiduspider|yandexbot|bingbot|googlebot|yahoo! slurp)/i.test(ua)) {
         return true;
     }
     return false;
 };
 
-zr_util.isTag = function(el, tag) {
+m6_util.isTag = function(el, tag) {
     return el && el.tagName && el.tagName.toLowerCase() === tag.toLowerCase();
 };
 
-zr_util.formatDate = function(d) {
+m6_util.formatDate = function(d) {
     // YYYY-MM-DDTHH:MM:SS in UTC
     function pad(n) {
         return n < 10 ? '0' + n : n;
@@ -73,7 +73,7 @@ zr_util.formatDate = function(d) {
  * @param {function(...[*])=} iterator
  * @param {Object=} context
  */
-zr_util.each = function(obj, iterator, context) {
+m6_util.each = function(obj, iterator, context) {
     if (obj === null || obj === undefined) {
         return;
     }
@@ -96,11 +96,11 @@ zr_util.each = function(obj, iterator, context) {
     }
 };
 
-zr_util.isUndefined = function(obj) {
+m6_util.isUndefined = function(obj) {
     return obj === void 0;
 };
 
-zr_util.shouldTrackDOMEvent = function(element) {
+m6_util.shouldTrackDOMEvent = function(element) {
     if (!element || this.isTag(element, 'html') || element.nodeType !== ELEMENT_NODE) {
         return false;
     }
@@ -127,7 +127,7 @@ zr_util.shouldTrackDOMEvent = function(element) {
     }
 };
 
-zr_util.getClassName = function(elem) {
+m6_util.getClassName = function(elem) {
     switch(typeof elem.className) {
         case 'string':
             return elem.className;
@@ -138,7 +138,7 @@ zr_util.getClassName = function(elem) {
     }
 };
 
-zr_util.getPropertiesFromElement = function(elem) {
+m6_util.getPropertiesFromElement = function(elem) {
     var props = {
         'classes': this.getClassName(elem).split(' '),
         'tag_name': elem.tagName.toLowerCase()
@@ -153,15 +153,15 @@ zr_util.getPropertiesFromElement = function(elem) {
     return props;
 };
 
-zr_util.islocalStorageSupported = function() {
+m6_util.islocalStorageSupported = function() {
     var supported = true;
      try {
-        var key = '__zrstoragesupport__', val = 'zivorad';
-            zr_util.localStorage.set(key, val);
-            if (zr_util.localStorage.get(key) !== val) {
+        var key = '__m6storagesupport__', val = 'sixthmass';
+            m6_util.localStorage.set(key, val);
+            if (m6_util.localStorage.get(key) !== val) {
                 supported = false;
             }
-            zr_util.localStorage.remove(key);
+            m6_util.localStorage.remove(key);
     } catch (err) {
             supported = false;
     }
@@ -171,7 +171,7 @@ zr_util.islocalStorageSupported = function() {
     return supported;
 }
 
-zr_util.uuid4 = function() {
+m6_util.uuid4 = function() {
     var d = Date.now();
     if(window.performance && typeof window.performance.now === "function"){
         d += performance.now(); //use high-precision timer if available
@@ -184,62 +184,63 @@ zr_util.uuid4 = function() {
     return uuid;
 }
 
-zr_util.timestamp = function() {
+m6_util.timestamp = function() {
     Date.now = Date.now || function() {
         return +new Date;
     };
     return Date.now();
 }
 
-zr_util.timezone = function() {
+m6_util.timezone = function() {
     return new Date().getTimezoneOffset();
 }
 
-zr_util.isArray = Array.isArray || function(obj) {
+m6_util.isArray = Array.isArray || function(obj) {
     return toString.call(obj) === '[object Array]';
 };
 
 // universal storage (either local storage or cookies)
-zr_util.storage = {
+m6_util.storage = {
     get: function(name,storageType) {
-        if (storageType && storageType === '_zr_local') {
-            return zr_util.localStorage.get(name);
+        if (storageType && storageType === 'm6_local') {
+            return m6_util.localStorage.get(name);
         } else {
-            return zr_util.cookie.get(name);
+            return m6_util.cookieStorage.get(name);
         }
     },
     set: function(name,value,storageType) {
-        if (storageType && storageType === '_zr_local') {
-            zr_util.localStorage.set(name,value);
+        if (storageType && storageType === 'm6_local') {
+            m6_util.localStorage.set(name,value);
         } else {
-            zr_util.cookie.set(name,value, 5000, true, true);
+            m6_util.cookieStorage.set(name,value, 5000, true, true);
         }
     },
     remove: function(name,storageType) {
-        if (storageType && storageType === '_zr_local') {
-            zr_util.localStorage.remove(name);
+        if (storageType && storageType === 'm6_local') {
+            m6_util.localStorage.remove(name);
         } else {
-            zr_util.cookie.remove(name, true);
+            m6_util.cookieStorage.remove(name, true);
         }
     },
     parse: function(name, storageType) {
-        if (storageType && storageType === '_zr_local') {
-            return zr_util.localStorage.parse(name);
+        if (storageType && storageType === 'm6_local') {
+            return m6_util.localStorage.parse(name);
         } else {
-            return zr_util.cookie.parse(name);
+            return m6_util.cookieStorage.parse(name);
         }
     }
 
 }
 
-zr_util.localStorage = {
+m6_util.localStorage = {
     error: function(msg) {
         console.error('localStorage error: ' + msg);
     },
 
     get: function(name) {
         try {
-            return window.localStorage.getItem(name);
+            var item = window.localStorage.getItem(name);
+            return item;
         } catch (err) {
             console.error(err);
         }
@@ -248,7 +249,8 @@ zr_util.localStorage = {
 
     parse: function(name) {
         try {
-            return zr_util.JSONDecode(zr_util.localStorage.get(name)) || {};
+            var json = m6_util.JSONDecode(m6_util.localStorage.get(name)) || {};
+            return json;
         } catch (err) {
             // noop
         }
@@ -273,7 +275,7 @@ zr_util.localStorage = {
 };
 
 // Methods partially borrowed from quirksmode.org/js/cookies.html and mixpanel.com
-zr_util.cookieStorage = {
+m6_util.cookieStorage = {
     get: function(name) {
         var nameEQ = name + '=';
         var ca = document.cookie.split(';');
@@ -283,7 +285,10 @@ zr_util.cookieStorage = {
                 c = c.substring(1, c.length);
             }
             if (c.indexOf(nameEQ) === 0) {
-                return decodeURIComponent(c.substring(nameEQ.length, c.length));
+                var foundCookie = c.substring(nameEQ.length, c.length);
+                if (foundCookie && foundCookie !== null && foundCookie.length > 0) {
+                  return decodeURIComponent(c.substring(nameEQ.length, c.length));
+                }
             }
         }
         return null;
@@ -292,7 +297,7 @@ zr_util.cookieStorage = {
     parse: function(name) {
         var cookie;
         try {
-            cookie = zr_util.JSONDecode(zr_util.cookie.get(name)) || {};
+            cookie = m6_util.JSONDecode(m6_util.cookie.get(name)) || {};
         } catch (err) {
             // noop
         }
@@ -354,7 +359,7 @@ zr_util.cookieStorage = {
     }
 };
 
-zr_util.getQueryParam = function(url, param) {
+m6_util.getQueryParam = function(url, param) {
     // Expects a raw URL
 
     param = param.replace(/[\[]/, '\\\[').replace(/[\]]/, '\\\]');
@@ -362,17 +367,17 @@ zr_util.getQueryParam = function(url, param) {
         regex = new RegExp(regexS),
         results = regex.exec(url);
     if (results === null || (results && typeof(results[1]) !== 'string' && results[1].length)) {
-        return '';
+        return null;
     } else {
         return decodeURIComponent(results[1]).replace(/\+/g, ' ');
     }
 };
 
-zr_util.includes = function(str, needle) {
+m6_util.includes = function(str, needle) {
     return str.indexOf(needle) !== -1;
 }
 
-zr_util.referingFrom = {
+m6_util.referingFrom = {
     domain: function(referer) {
         var split = referer.split('/');
         if (split.length >= 3) {
@@ -394,11 +399,11 @@ zr_util.referingFrom = {
         }
     },
     searchQuery: function(referrer) {
-        var search = zr_util.referingFrom.searchEngine(referrer),param = (search != 'yahoo') ? 'q' : 'p',ret = "";
+        var search = m6_util.referingFrom.searchEngine(referrer),param = (search != 'yahoo') ? 'q' : 'p',ret = "";
 
         if (search !== null) {
 
-            var keyword = zr_util.getQueryParam(referrer, param);
+            var keyword = m6_util.getQueryParam(referrer, param);
             if (keyword.length) {
                 ret = ret + "," + keyword;
             }
@@ -408,41 +413,41 @@ zr_util.referingFrom = {
 
     browser: function(user_agent, vendor, opera) {
         vendor = vendor || ''; // vendor is undefined for at least IE9
-        if (opera || zr_util.includes(user_agent, ' OPR/')) {
-            if (zr_util.includes(user_agent, 'Mini')) {
+        if (opera || m6_util.includes(user_agent, ' OPR/')) {
+            if (m6_util.includes(user_agent, 'Mini')) {
                 return 'Opera Mini';
             }
             return 'Opera';
         } else if (/(BlackBerry|PlayBook|BB10)/i.test(user_agent)) {
             return 'BlackBerry';
-        } else if (zr_util.includes(user_agent, 'IEMobile') || zr_util.includes(user_agent, 'WPDesktop')) {
+        } else if (m6_util.includes(user_agent, 'IEMobile') || m6_util.includes(user_agent, 'WPDesktop')) {
             return 'Internet Explorer Mobile';
-        } else if (zr_util.includes(user_agent, 'Edge')) {
+        } else if (m6_util.includes(user_agent, 'Edge')) {
             return 'Microsoft Edge';
-        } else if (zr_util.includes(user_agent, 'FBIOS')) {
+        } else if (m6_util.includes(user_agent, 'FBIOS')) {
             return 'Facebook Mobile';
-        } else if (zr_util.includes(user_agent, 'Chrome')) {
+        } else if (m6_util.includes(user_agent, 'Chrome')) {
             return 'Chrome';
-        } else if (zr_util.includes(user_agent, 'CriOS')) {
+        } else if (m6_util.includes(user_agent, 'CriOS')) {
             return 'Chrome iOS';
-        } else if (zr_util.includes(user_agent, 'UCWEB') || zr_util.includes(user_agent, 'UCBrowser')) {
+        } else if (m6_util.includes(user_agent, 'UCWEB') || m6_util.includes(user_agent, 'UCBrowser')) {
             return 'UC Browser';
-        } else if (zr_util.includes(user_agent, 'FxiOS')) {
+        } else if (m6_util.includes(user_agent, 'FxiOS')) {
             return 'Firefox iOS';
-        } else if (zr_util.includes(vendor, 'Apple')) {
-            if (zr_util.includes(user_agent, 'Mobile')) {
+        } else if (m6_util.includes(vendor, 'Apple')) {
+            if (m6_util.includes(user_agent, 'Mobile')) {
                 return 'Mobile Safari';
             }
             return 'Safari';
-        } else if (zr_util.includes(user_agent, 'Android')) {
+        } else if (m6_util.includes(user_agent, 'Android')) {
             return 'Android Mobile';
-        } else if (zr_util.includes(user_agent, 'Konqueror')) {
+        } else if (m6_util.includes(user_agent, 'Konqueror')) {
             return 'Konqueror';
-        } else if (zr_util.includes(user_agent, 'Firefox')) {
+        } else if (m6_util.includes(user_agent, 'Firefox')) {
             return 'Firefox';
-        } else if (zr_util.includes(user_agent, 'MSIE') || zr_util.includes(user_agent, 'Trident/')) {
+        } else if (m6_util.includes(user_agent, 'MSIE') || m6_util.includes(user_agent, 'Trident/')) {
             return 'Internet Explorer';
-        } else if (zr_util.includes(user_agent, 'Gecko')) {
+        } else if (m6_util.includes(user_agent, 'Gecko')) {
             return 'Mozilla';
         } else {
             return null;
@@ -454,7 +459,7 @@ zr_util.referingFrom = {
      * http://www.useragentstring.com/pages/useragentstring.php
      */
     browserVersion: function(userAgent, vendor, opera) {
-        var browser = zr_util.referingFrom.browser(userAgent, vendor, opera);
+        var browser = m6_util.referingFrom.browser(userAgent, vendor, opera);
         var versionRegexs = {
             'Internet Explorer Mobile': /rv:(\d+(\.\d+)?)/,
             'Microsoft Edge': /Edge\/(\d+(\.\d+)?)/,
@@ -523,13 +528,13 @@ zr_util.referingFrom = {
         }
     },
     language: function() {
-        return navigator.language || navigator.userLanguage; 
+        return navigator.language || navigator.userLanguage;
     }
 };
 
 // Encoding, decoding borrwed from  https://gist.github.com/pascaldekloe/62546103a1576803dade9269ccf76330
 // Marshals a string to Uint8Array.
-zr_util.encodeUTF8 = function(s) {
+m6_util.encodeUTF8 = function(s) {
     var i = 0;
     var bytes = new Uint8Array(s.length * 4);
     for (var ci = 0; ci != s.length; ci++) {
@@ -559,7 +564,7 @@ zr_util.encodeUTF8 = function(s) {
 }
 
 // Unmarshals an Uint8Array to string.
-zr_util.decodeUTF8 = function(bytes) {
+m6_util.decodeUTF8 = function(bytes) {
     var s = '';
     var i = 0;
     while (i < bytes.length) {
@@ -588,7 +593,7 @@ zr_util.decodeUTF8 = function(bytes) {
     return s;
 }
 
-zr_util.JSONDecode = (function() { // https://github.com/douglascrockford/JSON-js/blob/master/json_parse.js
+m6_util.JSONDecode = (function() { // https://github.com/douglascrockford/JSON-js/blob/master/json_parse.js
     var at, // The index of the current character
         ch, // The current character
         escapee = {
@@ -821,7 +826,7 @@ zr_util.JSONDecode = (function() { // https://github.com/douglascrockford/JSON-j
     };
 })();
 
-zr_util.JSONEncode = (function() {
+m6_util.JSONEncode = (function() {
     return function(mixed_val) {
         var value = mixed_val;
         var quote = function(string) {
@@ -942,4 +947,4 @@ zr_util.JSONEncode = (function() {
     };
 })();
 
-//export  {zr_util}
+//export  {m6_util}
