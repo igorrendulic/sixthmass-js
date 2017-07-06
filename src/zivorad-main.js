@@ -85,12 +85,29 @@ SixthMassLib.prototype.init = function(token) {
     // uniquely identify session and user
     this.initUser();
 
+    this.queue = new Array();
+
     // register autotracking events
     var eventList = this.Config.events;
     for (var i=0; i<eventList.length; i++) {
         var eventType = eventList[i];
         this.registerEvent(eventType,document,true);
     }
+}
+
+SixthMassLib.prototype.queueEvent = function(event) {
+
+  this.queue.push(event);
+
+  if (this.queue.length > 0) {
+      var url = this.getUrl();
+      var eventData = this.queue[0];
+      if (eventData.data) {
+        url = this.getProfileUrl();
+        eventData = eventData.data;
+      }
+      this.httpRequest(eventData, url, 1, this.queue);
+  }
 }
 
 SixthMassLib.prototype.track = function(event, properties) {
@@ -102,7 +119,7 @@ SixthMassLib.prototype.profile = function(profile, customProperties) {
     var p = this.createProfile(profile,customProperties,this);
     var data = {};
     data.data = p;
-    this.httpRequest(data, this.getProfileUrl(), 1, false); // first delay 1 second, don't store to queue
+    this.queueEvent(data);
 }
 
 SixthMassLib.prototype.purchase = function(array) {
@@ -111,7 +128,7 @@ SixthMassLib.prototype.purchase = function(array) {
         return;
     }
     var e = this.createPurchase(array, this);
-    this.queueEvent(e);
+    this. queueEvent(e);
 }
 
 SixthMassLib.prototype.register = function(profile,customProperties) {
@@ -481,93 +498,62 @@ SixthMassLib.prototype.storeAllCampaignCookies = function() {
   }
 }
 
-// check if local storage available, otherwise use in memory queue (cookies too small - up to 4K)
-SixthMassLib.prototype.queueEvent = function(event) {
-    var queue = null;
-    var queueIndex = 0;
-    try {
-        // selecting in-memory or local storage queue (local storage preferred)
-        if (m6_util.islocalStorageSupported()) {
-            queue = m6_util.storage.parse(STORAGE_QUEUE, this.Config.storage);
-        } else {
-            queue = globalDataQueue;
-        }
-        if (queue == null) { // first event sent
-            queue = [];
-        }
-        var data = {};
-        queueIndex = queue.push(data) - 1;
-        data.queueIndex = queueIndex;
-        data.data = event;
-        if (m6_util.islocalStorageSupported()) {
-            m6_util.storage.set(STORAGE_QUEUE, m6_util.JSONEncode(queue), this.Config.storage);
-        }
-
-        this.sendData(queue);
-    } catch (ex) {
-        console.error('storage queue problem:', ex);
-    }
-}
-
 
 /*
 * Manages queue Index for input event queue (combines current event with previous event)
 * After this function events and managed as one by one event queue
 */
-SixthMassLib.prototype.sendData = function(queue) {
+// SixthMassLib.prototype.sendData = function(queue) {
+//
+//     if (!queue) {
+//         console.error('required defined queue and url');
+//         return;
+//     }
+//
+//     for (var i=0; i<queue.length; i++) {
+//         var current = queue[i];
+//         if (i - 1 >= 0) {
+//             var previous = queue[i-1];
+//             current.data.pTs = previous.data.ts;
+//             current.data.p = previous.data.e;
+//         }
+//         current.queueIndex = i;
+//
+//         this.httpRequest(current, this.getUrl(), 1, true); // 1 seconds start with progressive backoff (max to 16 seconds), store to queue
+//     }
+// }
 
-    if (!queue) {
-        console.error('required defined queue and url');
-        return;
-    }
-
-    for (var i=0; i<queue.length; i++) {
-        var current = queue[i];
-        if (i - 1 >= 0) {
-            var previous = queue[i-1];
-            current.data.pTs = previous.data.ts;
-            current.data.p = previous.data.e;
-        }
-        current.queueIndex = i;
-
-        this.httpRequest(current, this.getUrl(), 1, true); // 1 seconds start with progressive backoff (max to 16 seconds), store to queue
-    }
-}
-
-SixthMassLib.prototype.httpRequest = function(data, url, delay, storeToQueue) {
+SixthMassLib.prototype.httpRequest = function(data, url, delay, queue) {
     try {
-        if (data.sent) {
-            if (data.sent === 1) {
-                return; // don't resend events
-            }
-        }
 
         var http = m6_util.createXMLHTTPObject();
         http.open('POST', url, true);
         http.withCredentials = true;
         http.setRequestHeader('Content-type', 'application/json');
         var instance = this;
+        var urlProfile = this.getProfileUrl();
         http.onreadystatechange = function() {
             if(http.readyState === 4) {
                 if (http.status === 200) {
-                    if (storeToQueue) {
-                        var queue = m6_util.storage.parse(STORAGE_QUEUE, instance.Config.storage);
-                        if (queue) {
-                            data.sent = 1;
-                            data.sentTime = m6_util.timestamp();
-                            queue[data.queueIndex] = data;
-                            console.log('sent data: ', data);
-                            m6_util.storage.set(STORAGE_QUEUE,m6_util.JSONEncode(queue), instance.Config.storage);
-                            queue = m6_util.storage.parse(STORAGE_QUEUE, instance.Config.storage); // remove this one
+                      data.sent = 1;
+                      data.sentTime = m6_util.timestamp();
+                      console.log('sent data: ', data);
+                      queue.shift();
+                      if (queue.length > 0) {
+                        var nextEvent = queue[0];
+                        if (nextEvent.data) {
+                          instance.httpRequest(nextEvent.data, urlProfile, 1, queue);
+                        } else {
+                          instance.httpRequest(nextEvent, url, 1, queue);
                         }
-                    }
+                      }
                 } else {
                     // progressive backoff if failed
                     if (delay >= 1 && delay <= 15) {
                         var newDelay = delay === 1 ? 2 : delay * 2;
                         console.log('Bad HTTP Status. Retrying: ', newDelay);
                         setTimeout(function() {
-                          instance.httpRequest(data, url, newDelay);
+                          instance.httpRequest(data, url, newDelay, queue);
                         }, newDelay * 1000);
                     } else {
                         // handle failure
@@ -576,7 +562,7 @@ SixthMassLib.prototype.httpRequest = function(data, url, delay, storeToQueue) {
                 }
             }
         }
-        http.send(JSON.stringify(data.data));
+        http.send(JSON.stringify(data));
     } catch (ex) {
         console.error(ex);
     }
