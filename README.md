@@ -24,6 +24,13 @@ m6.track('event name',{'name':'igor'});
 Most basic and most common event tracking.
 `event name` is required. Seconds parameter is `custom json` object.
 
+### Optional Event Tracking
+If you don't like to include your own javascript functions just for handling SixthMass events you can decorate links, buttons or any element in your web page.
+
+```
+<a href="mylink.html" m6-event="event name">This is link to somewhere</a>
+```
+
 ### User Registration Tracking
 
 ```javascript
