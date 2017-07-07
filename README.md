@@ -4,7 +4,7 @@
 
 ```javascript
 <script type="text/javascript">
-var M6_LIB_URL="zivorad.min.0.0.2.local.js";
+var M6_LIB_URL="zivorad.min.0.0.2.js";
 (function(){var c=window.m6=window.m6||[];c.factory=function(a){return function(){var b=Array.prototype.slice.call(arguments);b.unshift(a);c.push(b);return c}};for(var b=["init","track","profile","purchase","register"],d=0;d<b.length;d++){var e=b[d];c[e]=c.factory(e)}var a=document.createElement("script");a.type="text/javascript";a.async=!0;a.src="//storage.googleapis.com/zivoradjscdn/"+M6_LIB_URL;b=document.getElementsByTagName("script")[0];b.parentNode.insertBefore(a,b);var f=!1;a.onload=a.onreadystatechange=
 function(){f||this.readyState&&"loaded"!==this.readyState&&"complete"!==this.readyState||(f=!0,a.onload=a.onreadystatechange=null,window.m6=_m6_init())}})();
 m6.init("YOUR KEY");
@@ -30,8 +30,8 @@ Most basic and most common event tracking.
 m6.register({"first_name":"Rudi",
 			 "last_name":"Popudi",
 			 "user_id":"theone",
-			 "email":"igor+test1@sixthmass.com",
-			 "business_name":"Sixthmass Inc.",
+			 "email":"igor+test1@demo.com",
+			 "business_name":"Acme Inc.",
 			 "birthday":"1982-05-05"},
 		{'some_number':1, 'date_me':Date.now(), 'boolean_value':true, 'string_value':'StringYes', 'decimal_value':0.1});
 ```
@@ -52,7 +52,7 @@ There is no need to call profile (method bellow) after registration (it records 
 
 ```javascript
 m6.profile(
-	{"first_name":"Igor","last_name":"Rendulic","user_id":"123456","email":"something@sixthmass.com","gender":"male","business_name":"Sixthmass company","birthday":"1979-04-13"},
+	{"first_name":"Igor","last_name":"Rendulic","user_id":"123456","email":"something@demo.com","gender":"male","business_name":"Acme company","birthday":"1979-04-13"},
 	{'custom':1, 'date':Date.now(), 'use':true, 'str':'StringYes', 'decimal':0.1});
 ```
 
