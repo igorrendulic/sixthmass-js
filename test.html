@@ -1,58 +1,13 @@
 <html>
 	<head>
-		 <script src="src/util.js"></script>
-		<script src="src/zivorad-main.js"></script>
-
-		<!-- <script src="dist/zivorad.min.0.0.1.js"></script> -->
 		<script type="text/javascript">
 
-			var M6_LIB_URL = 'src/zivorad-main.js';
-
-			(function(){
-				var m6 = window.m6 = window.m6 || [];
-
-				// method stub factory (makeing it possible to call functions before the lib is loaded - defered method calls)
-				m6.factory = function(method){
-			      return function(){
-			        var args = Array.prototype.slice.call(arguments);
-			        args.unshift(method);
-			        m6.push(args);
-			        return m6;
-			      };
-			    };
-
-			    // exposed javascript methods
-			    var methods = ['init','track','profile','purchase', 'register'];
-			    for (var i=0; i<methods.length; i++) {
-			    	var method = methods[i];
-			    	m6[method] = m6.factory(method);
-			    }
-
-			    // loading javascript
-				var script = document.createElement('script');
-				script.type = 'text/javascript';
-				script.async = true;
-				script.src = M6_LIB_URL;
-
-				// Insert our script next to the first script element.
-				var first = document.getElementsByTagName('script')[0];
-				first.parentNode.insertBefore(script, first);
-
-				var loaded = false;
-				// // setup an onload handler to initialize the plugin once the runtime
-				// // resources are downloaded
-				script.onload = script.onreadystatechange = function() {
-					if (!loaded && (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete')) {
-						loaded = true;
-						script.onload = script.onreadystatechange = null;
-						window.m6 = _m6_init();
-					}
-				};
-			})();
+		var M6_LIB_URL="zivorad.min.0.0.2.local.js";
+		(function(){var c=window.m6=window.m6||[];c.factory=function(a){return function(){var b=Array.prototype.slice.call(arguments);b.unshift(a);c.push(b);return c}};for(var b=["init","track","profile","purchase","register"],d=0;d<b.length;d++){var e=b[d];c[e]=c.factory(e)}var a=document.createElement("script");a.type="text/javascript";a.async=!0;a.src="//storage.googleapis.com/zivoradjscdn/"+M6_LIB_URL;b=document.getElementsByTagName("script")[0];b.parentNode.insertBefore(a,b);var f=!1;a.onload=a.onreadystatechange=
+		function(){f||this.readyState&&"loaded"!==this.readyState&&"complete"!==this.readyState||(f=!0,a.onload=a.onreadystatechange=null,window.m6=_m6_init())}})();
 
 
-
-			m6.init("2ef5402c-dd5a-4cd5-ad51-6be930a4e9f4");
+			m6.init("1990fdbf-d62b-4c7f-b89b-c5b09f7fa1a5");
 
 			m6.track('my event',{'name':'igor'});
 

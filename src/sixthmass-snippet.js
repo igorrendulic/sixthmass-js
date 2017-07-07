@@ -1,4 +1,4 @@
-var M6_LIB_URL = '//storage.googleapis.com/zivoradjscdn/zivorad.min.0.0.1.js';
+var M6_LIB_URL = 'sixthmass.min.0.0.2.js';
 
 (function(){
 	var m6 = window.m6 = window.m6 || [];
@@ -24,7 +24,7 @@ var M6_LIB_URL = '//storage.googleapis.com/zivoradjscdn/zivorad.min.0.0.1.js';
 	var script = document.createElement('script');
 	script.type = 'text/javascript';
 	script.async = true;
-	script.src = M6_LIB_URL;
+	script.src = "//storage.googleapis.com/zivoradjscdn/" + M6_LIB_URL;
 
 	// Insert our script next to the first script element.
 	var first = document.getElementsByTagName('script')[0];

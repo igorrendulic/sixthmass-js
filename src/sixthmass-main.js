@@ -22,10 +22,10 @@
 /** @const */ var STORAGE_QUEUE = 'm6_queue';
 /** @const */ var STORAGE_QUEUE_INDEX = 'm6_queue_index';
 /** @const */ var INACTIVE_SESSION_RESET = 30; // 30 minutes
-// /** @const */ var URL = 'http://events.sixthmass.com/v1/event';
-// /** @const */ var URL_PROFILE = 'http://events.sixthmass.com/v1/profile';
-/** @const */ var URL = 'http://localhost:8079/v1/event';
-/** @const */ var URL_PROFILE = 'http://localhost:8079/v1/profile';
+/** @const */ var URL = 'http://events.sixthmass.com/v1/event';
+/** @const */ var URL_PROFILE = 'http://events.sixthmass.com/v1/profile';
+// /** @const */ var URL = 'http://localhost:8079/v1/event';
+// /** @const */ var URL_PROFILE = 'http://localhost:8079/v1/profile';
 var globalDataQueue = [];
 
 var m6_instance;
@@ -34,7 +34,7 @@ var m6_instance;
 * Config
 */
 var Config = {
-    DEBUG: true,
+    debug: false,
     LIB_VERSION: '0.0.2',
     events: ['click'], // dblclick
     attributePrefix: 'm6-',
@@ -85,8 +85,6 @@ SixthMassLib.prototype.init = function(token) {
     // uniquely identify session and user
     this.initUser();
 
-    this.queue = new Array();
-
     // register autotracking events
     var eventList = this.Config.events;
     for (var i=0; i<eventList.length; i++) {
@@ -95,31 +93,14 @@ SixthMassLib.prototype.init = function(token) {
     }
 }
 
-SixthMassLib.prototype.queueEvent = function(event) {
-
-  this.queue.push(event);
-
-  if (this.queue.length > 0) {
-      var url = this.getUrl();
-      var eventData = this.queue[0];
-      if (eventData.data) {
-        url = this.getProfileUrl();
-        eventData = eventData.data;
-      }
-      this.httpRequest(eventData, url, 1, this.queue);
-  }
-}
-
 SixthMassLib.prototype.track = function(event, properties) {
     var e = this.createEvent(event,properties, this);
-    this.queueEvent(e);
+    this.httpRequest(e, this.getUrl(), 1);
 }
 
 SixthMassLib.prototype.profile = function(profile, customProperties) {
     var p = this.createProfile(profile,customProperties,this);
-    var data = {};
-    data.data = p;
-    this.queueEvent(data);
+    this.httpRequest(p, this.getProfileUrl(), 1);
 }
 
 SixthMassLib.prototype.purchase = function(array) {
@@ -128,13 +109,14 @@ SixthMassLib.prototype.purchase = function(array) {
         return;
     }
     var e = this.createPurchase(array, this);
-    this. queueEvent(e);
+    this.httpRequest(e, this.getUrl(), 1);
 }
 
 SixthMassLib.prototype.register = function(profile,customProperties) {
     var e = this.createRegister(profile, customProperties, this);
-    this.queueEvent(e);
-    this.profile(profile, customProperties);
+    var p = this.createProfile(profile, customProperties, this);
+    this.httpRequest(e, this.getUrl(), 1);
+    this.httpRequest(p, this.getProfileUrl(), 1);
 }
 
 // Execute defered functions when
@@ -218,7 +200,6 @@ SixthMassLib.prototype.handleEvents = function(e, m6) { // e = event,  = referen
                             }
                         });
                     } else if (elementProperties.tag_name === 'button') {
-                        m6.debug(elementProperties.attributes);
                         listOfEvents.push(elementProperties);
                     }
                 }
@@ -239,7 +220,7 @@ SixthMassLib.prototype.decorateEvents = function(events,m6) {
             m6_util.each(e.attributes, function(a) {
                 if (a.name === (m6.Config.attributePrefix + m6.PostfixAction)) {
                     var newEvent = m6.createEvent(a.value,null,m6);
-                    m6.queueEvent(newEvent);
+                    m6.httpRequest(newEvent, m6.getUrl(), 1);
                 }
             });
         });
@@ -341,7 +322,7 @@ SixthMassLib.prototype.createProfile = function(profile,customProperties,m6) {
 }
 
 SixthMassLib.prototype.createRegister = function(profile, customProperties,m6) {
-    var p = m6.createProfile(profile, customProperties, this);
+    // var p = m6.createProfile(profile, customProperties, this);
     var e = m6.createEvent('m6 register', null, m6);
     return e;
 }
@@ -450,7 +431,9 @@ SixthMassLib.prototype.touchSession = function() {
         if (continueSession) {
 
           if (now - sessionLastTouch > INACTIVE_SESSION_RESET * 60 * 1000) { // if more than 30 minutes of inactivity
+            if (this.Config.debug) {
               console.log('new session defined');
+            }
 
               m6_util.storage.remove(STORAGE_QUEUE, this.Config.storage); // remove queue from storage (fresh start)
               m6_util.storage.remove(STORAGE_QUEUE_INDEX, this.Config.storage); // remove also queue index
@@ -461,7 +444,9 @@ SixthMassLib.prototype.touchSession = function() {
               m6_util.storage.set(STORAGE_SESSION,m6_util.JSONEncode(sessionJson), this.Config.storage);
           } else {
               var duration = (now - sessionTs) / 1000; // seconds
-              console.log('session duration current', duration);
+              if (this.Config.debug) {
+                console.log('new session defined');
+              }
               sessionJson['sessDuration'] = duration;
               sessionJson['lastTouch'] = now;
               m6_util.storage.set(STORAGE_SESSION,m6_util.JSONEncode(sessionJson), this.Config.storage);
@@ -498,62 +483,28 @@ SixthMassLib.prototype.storeAllCampaignCookies = function() {
   }
 }
 
-
-/*
-* Manages queue Index for input event queue (combines current event with previous event)
-* After this function events and managed as one by one event queue
-*/
-// SixthMassLib.prototype.sendData = function(queue) {
-//
-//     if (!queue) {
-//         console.error('required defined queue and url');
-//         return;
-//     }
-//
-//     for (var i=0; i<queue.length; i++) {
-//         var current = queue[i];
-//         if (i - 1 >= 0) {
-//             var previous = queue[i-1];
-//             current.data.pTs = previous.data.ts;
-//             current.data.p = previous.data.e;
-//         }
-//         current.queueIndex = i;
-//
-//         this.httpRequest(current, this.getUrl(), 1, true); // 1 seconds start with progressive backoff (max to 16 seconds), store to queue
-//     }
-// }
-
-SixthMassLib.prototype.httpRequest = function(data, url, delay, queue) {
+SixthMassLib.prototype.httpRequest = function(data, url, delay) {
     try {
 
         var http = m6_util.createXMLHTTPObject();
         http.open('POST', url, true);
+
         http.withCredentials = true;
         http.setRequestHeader('Content-type', 'application/json');
         var instance = this;
-        var urlProfile = this.getProfileUrl();
         http.onreadystatechange = function() {
             if(http.readyState === 4) {
                 if (http.status === 200) {
-                      data.sent = 1;
-                      data.sentTime = m6_util.timestamp();
-                      console.log('sent data: ', data);
-                      queue.shift();
-                      if (queue.length > 0) {
-                        var nextEvent = queue[0];
-                        if (nextEvent.data) {
-                          instance.httpRequest(nextEvent.data, urlProfile, 1, queue);
-                        } else {
-                          instance.httpRequest(nextEvent, url, 1, queue);
-                        }
-                      }
+                    if (instance.Config.debug) {
+                      console.log('sent: ', data);
+                    }
                 } else {
                     // progressive backoff if failed
                     if (delay >= 1 && delay <= 15) {
                         var newDelay = delay === 1 ? 2 : delay * 2;
                         console.log('Bad HTTP Status. Retrying: ', newDelay);
                         setTimeout(function() {
-                          instance.httpRequest(data, url, newDelay, queue);
+                          instance.httpRequest(data, url, newDelay);
                         }, newDelay * 1000);
                     } else {
                         // handle failure

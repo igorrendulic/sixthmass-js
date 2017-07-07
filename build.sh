@@ -3,11 +3,11 @@
 VERSION=$1
 if [ -z $1 ]
   then
-    VERSION="0.0.3"
+    VERSION="0.0.2"
 fi
-echo "Building zivorad-js"
+echo "Building sixthmass-main.js"
 
-java -jar compiler/closure-compiler-v20170124.jar --js src/util.js --js src/zivorad-main.js --js_output_file dist/zivorad.min."$VERSION".js
+java -jar compiler/closure-compiler-v20170124.jar --js src/util.js --js src/sixthmass-main.js --js_output_file dist/sixthmass.min."$VERSION".js
 
 echo "Building snippet"
-java -jar compiler/closure-compiler-v20170124.jar --js src/zivorad-snippet.js --js_output_file dist/zivorad-snippet."$VERSION".js
+java -jar compiler/closure-compiler-v20170124.jar --js src/sixthmass-snippet.js --js_output_file dist/sixthmass-snippet."$VERSION".js
