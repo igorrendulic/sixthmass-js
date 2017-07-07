@@ -12,7 +12,7 @@ m6.init("YOUR KEY HERE");
 </script>
 ```
 
-Replace `YOUR KEY HERE` with the key from [http://www.sixthmass.com](sixthmass.com)
+Replace `YOUR KEY HERE` with the key from [sixthmass.com](http://www.sixthmass.com)
 
 ## Javascript methods
 
