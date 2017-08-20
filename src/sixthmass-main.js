@@ -22,8 +22,8 @@
 /** @const */ var STORAGE_QUEUE = 'm6_queue';
 /** @const */ var STORAGE_QUEUE_INDEX = 'm6_queue_index';
 /** @const */ var INACTIVE_SESSION_RESET = 30; // 30 minutes
-/** @const */ var URL = 'http://events.sixthmass.com/v1/event';
-/** @const */ var URL_PROFILE = 'http://events.sixthmass.com/v1/profile';
+/** @const */ var URL = 'https://events.sixthmass.com/v1/event';
+/** @const */ var URL_PROFILE = 'https://events.sixthmass.com/v1/profile';
 // /** @const */ var URL = 'http://localhost:8079/v1/event';
 // /** @const */ var URL_PROFILE = 'http://localhost:8079/v1/profile';
 var globalDataQueue = [];
@@ -35,7 +35,7 @@ var m6_instance;
 */
 var Config = {
     debug: false,
-    LIB_VERSION: '0.0.2',
+    LIB_VERSION: '0.0.3',
     events: ['click'], // dblclick
     attributePrefix: 'm6-',
     trackOnlyM6: true
@@ -99,7 +99,12 @@ SixthMassLib.prototype.track = function(event, properties) {
 }
 
 SixthMassLib.prototype.profile = function(profile, customProperties) {
-    var p = this.createProfile(profile,customProperties,this);
+    var p = this.createProfile(profile,customProperties,null,this);
+    this.httpRequest(p, this.getProfileUrl(), 1);
+}
+
+SixthMassLib.prototype.profile = function(profile, customProperties, tags) {
+    var p = this.createProfile(profile,customProperties,tags,this);
     this.httpRequest(p, this.getProfileUrl(), 1);
 }
 
@@ -114,7 +119,7 @@ SixthMassLib.prototype.purchase = function(array) {
 
 SixthMassLib.prototype.register = function(profile,customProperties) {
     var e = this.createRegister(profile, customProperties, this);
-    var p = this.createProfile(profile, customProperties, this);
+    var p = this.createProfile(profile, customProperties,null, this);
     this.httpRequest(e, this.getUrl(), 1);
     this.httpRequest(p, this.getProfileUrl(), 1);
 }
@@ -298,7 +303,7 @@ SixthMassLib.prototype.augmentEventWithCampaign = function(newEvent) {
   return newEvent;
 }
 
-SixthMassLib.prototype.createProfile = function(profile,customProperties,m6) {
+SixthMassLib.prototype.createProfile = function(profile,customProperties,tags,m6) {
     var p = {};
     var userProfile = m6_util.storage.parse(STORAGE_USER_PROFILE, m6.Config.storage);
     if (!userProfile) {
@@ -314,6 +319,23 @@ SixthMassLib.prototype.createProfile = function(profile,customProperties,m6) {
     p.gender = profile.gender;
     p.businessName = profile.business_name;
     p.birthday = profile.birthday;
+
+    var searchEngine = m6_util.referingFrom.searchEngine(document.referrer);
+    if (searchEngine != null) {
+        p.refDomain = searchEngine;
+        p.searchQuery = m6_util.referingFrom.searchQuery(document.referrer);
+    } else {
+        p.refDomain = m6_util.referingFrom.domain(document.referrer);
+    }
+    if (tags) {
+        p.tags = tags;
+    }
+
+    p.browser = m6_util.referingFrom.browser(window.navigator.userAgent, window.navigator.vendor,window.opera);
+    p.os = m6_util.referingFrom.os(window.navigator.userAgent);
+    p.device = m6_util.referingFrom.device(window.navigator.userAgent);
+    p.lang = m6_util.referingFrom.language();
+
     if (!m6_util.isUndefined(customProperties)) {
         p.customValues = customProperties;
     }

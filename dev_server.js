@@ -1,5 +1,5 @@
 var zr_util = require('./src/util.js')
-var zivorad = require('./src/zivorad-main.js')
+var zivorad = require('./src/sixthmass-main.js')
 var express = require('express')
 
 var app = express()

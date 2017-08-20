@@ -1,4 +1,4 @@
-var M6_LIB_URL = 'sixthmass.min.0.0.2.js';
+var M6_LIB_URL = 'sixthmass.min.0.0.3.js';
 
 (function(){
 	var m6 = window.m6 = window.m6 || [];

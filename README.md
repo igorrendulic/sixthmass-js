@@ -58,14 +58,52 @@ There is no need to call profile (method bellow) after registration (it records 
 
 ### User Profile Tracking
 
+Every time user profile is updated SixthMass accomuluates the properties. Newer properties take precedence over existing user profile properties.
+First parameter is JSON Object with predefined fields. Second parameter is optional and holds custom values.
+
 ```javascript
 m6.profile(
-	{"first_name":"Igor","last_name":"Rendulic","user_id":"123456","email":"something@demo.com","gender":"male","business_name":"Acme company","birthday":"1979-04-13"},
+	{"first_name":"Igor",
+	"last_name":"Rendulic",
+	"user_id":"123456",
+	"email":"something@demo.com",
+	"gender":"male",
+	"business_name":"Acme company",
+	"birthday":"1979-04-13"});
+```
+
+Update user profile with custom propertiy values
+
+```javascript
+m6.profile(
+	{"first_name":"Igor",
+	"last_name":"Rendulic",
+	"user_id":"123456",
+	"email":"something@demo.com",
+	"gender":"male",
+	"business_name":"Acme company",
+	"birthday":"1979-04-13"},
 	{'custom':1, 'date':Date.now(), 'use':true, 'str':'StringYes', 'decimal':0.1});
 ```
 
-Updates user profile. Method merges properties of existing profile. Newer properties take precedence over existing user profile properties.
-First parameter is JSON Object with predefined fields. Second parameter is optional and holds custom values.
+#### User profile tagging
+
+User tagging is very powerful feature for marketing or any other means where you want to specifically target a group of users.
+
+By default SixthMass created tags for all users:
+- Language (e.g. `en-US`)
+- Country from which request originated as an [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) standard (e.g. `US`)
+- City from which request originated (e.g. `San Francisco`)
+- Operating System (e.g. `Mac OS X`)
+- Browser (e.g. `Chrome`)
+- Device (e.g. `iPhone`)
+- Gender (e.g. `male`)
+- Reference Domain, first domain person was referenced from (e.g. `google`)
+
+> Why is tagging useful?
+> Tagging is useful when filtering users. Imaging you want to sent an email only to users with iPhone devices, or Android devices. In some cases it might be useful to filter users based on multiple tags, for instance all iPhone users from San Francisco. 
+
+Additional to default tags you can add your own tags. In case you know you'd like to contact only users who purchased something through your product you could add a custom tag: `purchased`. 
 
 ### Purchase Tracking
 

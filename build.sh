@@ -3,7 +3,7 @@
 VERSION=$1
 if [ -z $1 ]
   then
-    VERSION="0.0.2"
+    VERSION="0.0.3"
 fi
 echo "Building sixthmass-main.js"
 
